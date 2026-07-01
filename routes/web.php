@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\OrderController; // ✅ ADD THIS
+use App\Http\Controllers\OrderController; 
 
 // ==============
 // CUSTOMER SIDE

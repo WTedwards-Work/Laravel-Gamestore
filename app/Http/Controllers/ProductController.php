@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
+use Illuminate\Support\Facades\DB; 
 
 class ProductController extends Controller
 {
@@ -12,7 +12,8 @@ class ProductController extends Controller
     // ===============
     public function index()
     {
-        $products = Product::all();
+        $products = DB::select('SELECT * FROM products ORDER BY id');
+
         return view('products.index', compact('products'));
     }
 
@@ -23,7 +24,8 @@ class ProductController extends Controller
     // SHOW ALL PRODUCTS (ADMIN)
     public function adminIndex()
     {
-        $products = Product::all();
+        $products = DB::select('SELECT * FROM products ORDER BY id');
+
         return view('admin.products.index', compact('products'));
     }
 
@@ -36,7 +38,18 @@ class ProductController extends Controller
     // STORE PRODUCT
     public function store(Request $request)
     {
-        Product::create($request->all());
+        DB::insert(
+            'INSERT INTO products (sku, name, description, price, image, stock, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())',
+            [
+                $request->sku,
+                $request->name,
+                $request->description,
+                $request->price,
+                $request->image,
+                $request->stock
+            ]
+        );
 
         return redirect('/admin/products')->with('success', 'Product added!');
     }
@@ -44,15 +57,35 @@ class ProductController extends Controller
     // SHOW EDIT FORM
     public function edit($id)
     {
-        $product = Product::findOrFail($id);
+        $product = DB::selectOne(
+            'SELECT * FROM products WHERE id = ?',
+            [$id]
+        );
+
+        if (!$product) {
+            abort(404);
+        }
+
         return view('admin.products.edit', compact('product'));
     }
 
     // UPDATE PRODUCT
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
-        $product->update($request->all());
+        DB::update(
+            'UPDATE products
+             SET sku = ?, name = ?, description = ?, price = ?, image = ?, stock = ?, updated_at = NOW()
+             WHERE id = ?',
+            [
+                $request->sku,
+                $request->name,
+                $request->description,
+                $request->price,
+                $request->image,
+                $request->stock,
+                $id
+            ]
+        );
 
         return redirect('/admin/products')->with('success', 'Product updated!');
     }
@@ -60,8 +93,10 @@ class ProductController extends Controller
     // DELETE PRODUCT
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
+        DB::delete(
+            'DELETE FROM products WHERE id = ?',
+            [$id]
+        );
 
         return redirect('/admin/products')->with('success', 'Product deleted!');
     }
